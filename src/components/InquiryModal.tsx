@@ -24,7 +24,7 @@ export default function InquiryModal({
   });
 
   const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [emailDraft, setEmailDraft] = useState('');
 
   const closeModal = () => {
     setIsOpen(false);
@@ -73,18 +73,24 @@ export default function InquiryModal({
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setFormData((prev) => ({
-      ...prev,
-      name: cleanText(prev.name, 100).trim(),
-      phone: cleanText(prev.phone, 30).trim(),
-      email: cleanText(prev.email, 254).trim(),
-      notes: cleanText(prev.notes, 1000).trim(),
-    }));
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setSubmitted(true);
-    }, 600);
+    const cleanedData = {
+      name: cleanText(formData.name, 100).trim(),
+      phone: cleanText(formData.phone, 30).trim(),
+      email: cleanText(formData.email, 254).trim(),
+      category: formData.category,
+      notes: cleanText(formData.notes, 1000).trim(),
+    };
+    setFormData((previous) => ({ ...previous, ...cleanedData }));
+
+    const body = [
+      `Name: ${cleanedData.name}`,
+      `Phone: ${cleanedData.phone}`,
+      `Email: ${cleanedData.email}`,
+      `Interest: ${cleanedData.category}`,
+      `Requirements: ${cleanedData.notes || 'Not provided'}`,
+    ].join('\n');
+    setEmailDraft(`mailto:info@bajwaestate.com?subject=${encodeURIComponent(`Website inquiry: ${cleanedData.category}`)}&body=${encodeURIComponent(body)}`);
+    setSubmitted(true);
   };
 
   return (
@@ -135,17 +141,20 @@ export default function InquiryModal({
                   <CheckCircle2 className="w-10 h-10" />
                 </motion.div>
                 <h3 className="font-serif text-3xl font-light text-white">
-                  Inquiry Received
+                  Inquiry Ready to Send
                 </h3>
                 <p className="text-brand-muted text-sm sm:text-base max-w-md mx-auto leading-relaxed">
-                  Thank you, <span className="text-brand-gold">{formData.name || 'Valued Client'}</span>. A dedicated Bajwa Estate private portfolio advisor will contact you within 2 hours.
+                  Your email app will open with your details prepared. Review the message and send it there to contact Bajwa Estate.
                 </p>
                 <div className="pt-4">
-                  <button
-                    onClick={closeModal}
-                    className="bg-brand-gold text-black font-medium px-8 py-3 rounded-full hover:bg-brand-gold-hover transition-all text-sm"
+                  <a
+                    href={emailDraft}
+                    className="inline-flex items-center gap-2 bg-brand-gold text-black font-medium px-8 py-3 rounded-full hover:bg-brand-gold-hover transition-all text-sm"
                   >
-                    Close Window
+                    <Send className="h-4 w-4" /> Open Email App
+                  </a>
+                  <button onClick={closeModal} className="ml-3 rounded-full border border-white/15 px-6 py-3 text-sm text-white hover:border-brand-gold/50 transition-colors">
+                    Close
                   </button>
                 </div>
               </div>
@@ -167,13 +176,15 @@ export default function InquiryModal({
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-medium">
+                      <label htmlFor="inquiry-name" className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-medium">
                         Full Name *
                       </label>
                       <input
                         type="text"
+                        id="inquiry-name"
                         required
                         value={formData.name}
+                        autoComplete="name"
                         maxLength={100}
                         onChange={(e) => setFormData((prev) => ({ ...prev, name: cleanText(e.target.value, 100) }))}
                         placeholder="e.g. Tariq Bajwa"
@@ -181,13 +192,16 @@ export default function InquiryModal({
                       />
                     </div>
                     <div>
-                      <label className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-medium">
+                      <label htmlFor="inquiry-phone" className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-medium">
                         Phone / WhatsApp *
                       </label>
                       <input
                         type="tel"
+                        id="inquiry-phone"
                         required
                         value={formData.phone}
+                        autoComplete="tel"
+                        inputMode="tel"
                         maxLength={30}
                         onChange={(e) => setFormData((prev) => ({ ...prev, phone: cleanText(e.target.value, 30) }))}
                         placeholder="+92 300 1234567"
@@ -198,13 +212,16 @@ export default function InquiryModal({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-medium">
+                      <label htmlFor="inquiry-email" className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-medium">
                         Email Address *
                       </label>
                       <input
                         type="email"
+                        id="inquiry-email"
                         required
                         value={formData.email}
+                        autoComplete="email"
+                        inputMode="email"
                         maxLength={254}
                         onChange={(e) => setFormData((prev) => ({ ...prev, email: cleanText(e.target.value, 254) }))}
                         placeholder="client@domain.com"
@@ -212,10 +229,11 @@ export default function InquiryModal({
                       />
                     </div>
                     <div>
-                      <label className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-medium">
+                      <label htmlFor="inquiry-category" className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-medium">
                         Interest Category
                       </label>
                       <select
+                        id="inquiry-category"
                         value={formData.category}
                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                         className="w-full bg-brand-card border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-gold transition-colors"
@@ -232,10 +250,11 @@ export default function InquiryModal({
                   </div>
 
                   <div>
-                    <label className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-medium">
+                    <label htmlFor="inquiry-notes" className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-medium">
                       Special Requirements or Timeline
                     </label>
                     <textarea
+                      id="inquiry-notes"
                       rows={3}
                       value={formData.notes}
                       maxLength={1000}
@@ -248,17 +267,10 @@ export default function InquiryModal({
                   <div className="pt-2">
                     <button
                       type="submit"
-                      disabled={loading}
                       className="w-full bg-brand-gold hover:bg-brand-gold-hover text-black font-medium py-3.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-brand-gold/15 disabled:opacity-50 text-sm font-sans"
                     >
-                      {loading ? (
-                        <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-black border-t-transparent" />
-                      ) : (
-                        <>
-                          <Send className="w-4 h-4" />
-                          <span>Submit Confidential Inquiry</span>
-                        </>
-                      )}
+                      <Send className="w-4 h-4" />
+                      <span>Prepare Inquiry Email</span>
                     </button>
                   </div>
                 </form>

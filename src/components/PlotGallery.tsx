@@ -40,11 +40,11 @@ export default function PlotGallery() {
   const current = plotCategories[activeIndex];
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
+    const timer = window.setTimeout(() => {
       setSlide(([index]) => [(index + 1) % plotCategories.length, 1]);
     }, 7000);
-    return () => window.clearInterval(timer);
-  }, []);
+    return () => window.clearTimeout(timer);
+  }, [activeIndex]);
 
   const goTo = (index: number) => {
     setSlide(([currentIndex]) => [index, index >= currentIndex ? 1 : -1]);

@@ -17,11 +17,11 @@ export default function Hero() {
   const [activeVisual, setActiveVisual] = useState(0);
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
+    const timer = window.setTimeout(() => {
       setActiveVisual((current) => (current + 1) % heroVisuals.length);
     }, 5000);
-    return () => window.clearInterval(timer);
-  }, []);
+    return () => window.clearTimeout(timer);
+  }, [activeVisual]);
 
   const showPrevious = () => setActiveVisual((current) => (current - 1 + heroVisuals.length) % heroVisuals.length);
   const showNext = () => setActiveVisual((current) => (current + 1) % heroVisuals.length);

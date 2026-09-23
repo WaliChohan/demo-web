@@ -18,6 +18,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         {/* Logo */}
         <a
+          id="top"
           href="#"
           data-cursor-text
           data-cursor-hover
@@ -60,6 +61,8 @@ export default function Navbar() {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="text-gray-300 hover:text-brand-gold p-2 transition-colors focus:outline-none"
             aria-label="Toggle menu"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-navigation"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -67,8 +70,11 @@ export default function Navbar() {
       </div>
 
       {/* Mobile Menu Dropdown */}
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-brand-dark/95 backdrop-blur-xl border-b border-white/10 px-6 py-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+      <div
+        id="mobile-navigation"
+        aria-hidden={!mobileMenuOpen}
+        className={`md:hidden bg-brand-dark/95 backdrop-blur-xl border-b border-white/10 px-6 py-6 space-y-4 ${mobileMenuOpen ? 'block animate-in fade-in slide-in-from-top-2 duration-200' : 'hidden'}`}
+      >
           <nav className="flex flex-col space-y-4 text-base font-medium text-gray-300">
             {navLinks.map((link) => (
               <a
@@ -90,8 +96,7 @@ export default function Navbar() {
               Inquire Now
             </a>
           </div>
-        </div>
-      )}
+      </div>
     </header>
   );
 }

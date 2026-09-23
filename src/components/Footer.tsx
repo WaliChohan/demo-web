@@ -1,8 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ArrowUpRight, Globe, Share2, Mail, Send } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowUpRight, Globe, Mail, Send } from 'lucide-react';
+import { type FormEvent, useState } from 'react';
 import SplitTextHeading from './SplitTextHeading';
 
 const footerLinks = {
@@ -13,20 +13,25 @@ const footerLinks = {
     { name: 'Private Office', href: '#contact' },
   ],
   legal: [
-    { name: 'Privacy Policy', href: '#privacy' },
-    { name: 'Terms of Service', href: '#terms' },
+    { name: 'Privacy Policy', href: 'mailto:info@bajwaestate.com?subject=Request%20for%20Privacy%20Policy' },
+    { name: 'Terms of Service', href: 'mailto:info@bajwaestate.com?subject=Request%20for%20Terms%20of%20Service' },
     { name: 'Investment Disclaimer', href: '#disclaimer' },
   ],
 };
 
 const socials = [
-  { icon: Globe, label: 'Website', href: '#' },
-  { icon: Share2, label: 'Social', href: '#' },
-  { icon: Mail, label: 'Email', href: '#' },
+  { icon: Globe, label: 'Back to top', href: '#top' },
+  { icon: Mail, label: 'Email', href: 'mailto:info@bajwaestate.com' },
 ];
 
 export default function Footer() {
   const [email, setEmail] = useState('');
+
+  const handleSubscribe = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const body = `Please add ${email.trim()} to the Bajwa Estate Private Dispatch mailing list.`;
+    window.location.href = `mailto:info@bajwaestate.com?subject=Private%20Dispatch%20Subscription&body=${encodeURIComponent(body)}`;
+  };
 
   return (
     <motion.footer
@@ -73,7 +78,7 @@ export default function Footer() {
             <p className="text-brand-muted text-sm font-light leading-relaxed max-w-xs">
               Architectural precision meets visionary real estate. Crafting landmark residences for discerning clients worldwide.
             </p>
-            <div className="space-y-2 text-sm text-brand-muted font-light">
+            <div id="contact" className="space-y-2 text-sm text-brand-muted font-light scroll-mt-24">
               <p>
                 <span className="text-white/60 text-xs uppercase tracking-widest block mb-0.5">Email</span>
                 info@bajwaestate.com
@@ -131,24 +136,28 @@ export default function Footer() {
             <p className="text-brand-muted text-sm font-light leading-relaxed">
               Receive curated market intelligence and exclusive estate releases before they reach the open market.
             </p>
-            <div className="flex items-center gap-0 border border-white/15 rounded-full overflow-hidden focus-within:border-brand-gold/50 transition-colors">
+            <form onSubmit={handleSubscribe} className="flex items-center gap-0 border border-white/15 rounded-full overflow-hidden focus-within:border-brand-gold/50 transition-colors">
+              <label htmlFor="private-dispatch-email" className="sr-only">Email address for the Private Dispatch</label>
               <input
+                id="private-dispatch-email"
                 type="email"
+                required
                 value={email}
                 maxLength={254}
                 onChange={(e) => setEmail(e.target.value.replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 254))}
                 placeholder="your@email.com"
-                className="flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder:text-brand-muted/50 focus:outline-none font-sans min-w-0"
+                className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder:text-brand-muted/50 focus:outline-none font-sans"
               />
               <button
                 type="submit"
                 data-cursor-hover
                 className="bg-brand-gold hover:bg-brand-gold-hover text-black p-3 m-1 rounded-full transition-all shrink-0 group hover:scale-105"
-                aria-label="Subscribe"
+                aria-label="Prepare an email subscription request"
               >
                 <Send className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
               </button>
-            </div>
+            </form>
+            <p className="text-xs leading-relaxed text-brand-muted/80">Opens an email draft so you can send your subscription request.</p>
           </div>
         </div>
 
@@ -156,7 +165,7 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-white/10 text-xs text-brand-muted font-light">
           <div className="space-y-1 text-center sm:text-left">
             <p>© {new Date().getFullYear()} Bajwa Estate. All rights reserved.</p>
-            <p className="text-white/30">
+            <p id="disclaimer" className="scroll-mt-24 text-white/50">
               All properties are subject to availability. Investment disclaimer applies — past performance is not indicative of future results.
             </p>
           </div>

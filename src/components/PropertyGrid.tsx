@@ -104,10 +104,10 @@ export default function PropertyGrid() {
   }, [maxDrag, x]);
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
+    const timer = window.setTimeout(() => {
       slideTo(currentIndex >= maxIndex ? 0 : currentIndex + 1);
     }, 5000);
-    return () => window.clearInterval(timer);
+    return () => window.clearTimeout(timer);
   }, [currentIndex, maxIndex, slideTo]);
 
   const handlePrev = () => slideTo(currentIndex - 1);
@@ -246,7 +246,7 @@ export default function PropertyGrid() {
                   src={property.image}
                   alt={property.title}
                   fill
-                  sizes="(max-width: 640px) 320px, 380px"
+                  sizes="(max-width: 639px) calc(100vw - 3rem), 380px"
                   draggable={false}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                 />
