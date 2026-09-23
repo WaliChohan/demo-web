@@ -1,0 +1,243 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, CheckCircle2, Sparkles, Send } from 'lucide-react';
+
+interface InquiryModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  defaultCategory?: string;
+}
+
+export default function InquiryModal({
+  isOpen,
+  onClose,
+  defaultCategory = '5 Marla',
+}: InquiryModalProps) {
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    category: defaultCategory,
+    notes: '',
+  });
+
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (defaultCategory) {
+      setFormData((prev) => ({ ...prev, category: defaultCategory }));
+    }
+  }, [defaultCategory]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      setSubmitted(false);
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setSubmitted(true);
+    }, 600);
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/80 backdrop-blur-md"
+          />
+
+          {/* Modal Container */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
+            className="relative w-full max-w-xl bg-brand-card border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden my-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Ambient gold glow at top */}
+            <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-32 bg-brand-gold/15 blur-3xl pointer-events-none rounded-full" />
+
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              className="absolute top-6 right-6 text-brand-muted hover:text-white p-2 rounded-full border border-white/10 hover:border-brand-gold/40 transition-colors"
+              aria-label="Close dialog"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {submitted ? (
+              /* Success State */
+              <div className="text-center py-10 space-y-4">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                  className="w-16 h-16 rounded-full bg-brand-gold/20 text-brand-gold flex items-center justify-center mx-auto"
+                >
+                  <CheckCircle2 className="w-10 h-10" />
+                </motion.div>
+                <h3 className="font-serif text-3xl font-light text-white">
+                  Inquiry Received
+                </h3>
+                <p className="text-brand-muted text-sm sm:text-base max-w-md mx-auto leading-relaxed">
+                  Thank you, <span className="text-brand-gold">{formData.name || 'Valued Client'}</span>. A dedicated Bajwa Estate private portfolio advisor will contact you within 2 hours.
+                </p>
+                <div className="pt-4">
+                  <button
+                    onClick={onClose}
+                    className="bg-brand-gold text-black font-medium px-8 py-3 rounded-full hover:bg-brand-gold-hover transition-all text-sm"
+                  >
+                    Close Window
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Form State */
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <span className="text-brand-gold text-[11px] font-semibold tracking-[0.25em] uppercase border border-brand-gold/30 px-3 py-1 rounded-full inline-block">
+                    PRIVATE CONSULTATION
+                  </span>
+                  <h3 className="font-serif text-2xl sm:text-3xl font-light text-white">
+                    Acquire or Inquire
+                  </h3>
+                  <p className="text-brand-muted text-xs sm:text-sm font-light">
+                    Direct access to our senior real estate advisory team for plots, bespoke estates, and turnkey acquisitions.
+                  </p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-medium">
+                        Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        placeholder="e.g. Tariq Bajwa"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-brand-muted/40 focus:outline-none focus:border-brand-gold transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-medium">
+                        Phone / WhatsApp *
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        placeholder="+92 300 1234567"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-brand-muted/40 focus:outline-none focus:border-brand-gold transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-medium">
+                        Email Address *
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        placeholder="client@domain.com"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-brand-muted/40 focus:outline-none focus:border-brand-gold transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-medium">
+                        Interest Category
+                      </label>
+                      <select
+                        value={formData.category}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                        className="w-full bg-brand-card border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-gold transition-colors"
+                      >
+                        <option value="3 Marla">3 Marla Plot</option>
+                        <option value="5 Marla">5 Marla Plot</option>
+                        <option value="7 Marla">7 Marla Plot</option>
+                        <option value="10 Marla">10 Marla Plot</option>
+                        <option value="1 Kanal">1 Kanal Estate</option>
+                        <option value="Luxury Villa">Luxury Architectural Villa</option>
+                        <option value="Commercial / Development">Commercial / Development</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-medium">
+                      Special Requirements or Timeline
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={formData.notes}
+                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                      placeholder="Share your preferred phase, plot orientation, or investment timeline..."
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-brand-muted/40 focus:outline-none focus:border-brand-gold transition-colors resize-none"
+                    />
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full bg-brand-gold hover:bg-brand-gold-hover text-black font-medium py-3.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-brand-gold/15 disabled:opacity-50 text-sm font-sans"
+                    >
+                      {loading ? (
+                        <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-black border-t-transparent" />
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4" />
+                          <span>Submit Confidential Inquiry</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+}
