@@ -9,6 +9,7 @@ interface SplitTextHeadingProps {
   goldWords?: string[];
   underline?: boolean;
   inView?: boolean;
+  hoverEffect?: boolean;
 }
 
 const containerVariants: Variants = {
@@ -43,6 +44,7 @@ export default function SplitTextHeading({
   goldWords = [],
   underline = false,
   inView = true,
+  hoverEffect = true,
 }: SplitTextHeadingProps) {
   const words = text.split(' ');
 
@@ -60,11 +62,15 @@ export default function SplitTextHeading({
       };
 
   return (
-    <div className="relative inline-block group cursor-pointer" data-cursor-text data-cursor-hover>
+    <div
+      className={`relative inline-block ${hoverEffect ? 'group cursor-pointer' : ''}`}
+      data-cursor-text={hoverEffect ? 'true' : undefined}
+      data-cursor-hover={hoverEffect ? 'true' : undefined}
+    >
       <MotionTag
         variants={containerVariants}
         {...motionProps}
-        className={`font-serif tracking-tight transition-all duration-300 group-hover:tracking-wide select-none ${className}`}
+        className={`font-serif tracking-tight transition-all duration-300 ${hoverEffect ? 'group-hover:tracking-wide' : ''} select-none ${className}`}
         aria-label={text}
       >
         {words.map((word, i) => {
@@ -77,7 +83,7 @@ export default function SplitTextHeading({
             <motion.span
               key={i}
               variants={wordVariants}
-              className={`inline-block mr-[0.25em] transition-transform duration-300 group-hover:-translate-y-0.5 ${
+              className={`${hoverEffect ? 'kinetic-heading-word group-hover:-translate-y-0.5' : ''} inline-block mr-[0.25em] transition-transform duration-300 ${
                 isGold
                   ? 'text-brand-gold font-normal'
                   : 'text-white font-light'

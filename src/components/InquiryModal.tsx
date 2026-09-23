@@ -2,19 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CheckCircle2, Sparkles, Send } from 'lucide-react';
+import { X, CheckCircle2, Send } from 'lucide-react';
 
 interface InquiryModalProps {
-  isOpen: boolean;
-  onClose: () => void;
   defaultCategory?: string;
 }
 
+const cleanText = (value: string, maxLength: number) =>
+  value.replace(/[\u0000-\u001f\u007f]/g, '').slice(0, maxLength);
+
 export default function InquiryModal({
-  isOpen,
-  onClose,
   defaultCategory = '5 Marla',
 }: InquiryModalProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -26,21 +26,38 @@ export default function InquiryModal({
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (defaultCategory) {
-      setFormData((prev) => ({ ...prev, category: defaultCategory }));
-    }
-  }, [defaultCategory]);
+  const closeModal = () => {
+    setIsOpen(false);
+    setSubmitted(false);
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
-        onClose();
+        closeModal();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleInquiryClick = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const link = target.closest<HTMLAnchorElement>('a[href="#inquire"]');
+      if (!link) return;
+      event.preventDefault();
+      const category = link.dataset.inquiryCategory;
+      if (category && ['3 Marla', '5 Marla', '7 Marla', '10 Marla', '1 Kanal'].includes(category)) {
+        setFormData((previous) => ({ ...previous, category }));
+      }
+      setIsOpen(true);
+    };
+
+    document.addEventListener('click', handleInquiryClick);
+    return () => document.removeEventListener('click', handleInquiryClick);
+  }, []);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -48,15 +65,21 @@ export default function InquiryModal({
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
-      setSubmitted(false);
     }
     return () => {
       document.body.style.overflow = '';
     };
   }, [isOpen]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setFormData((prev) => ({
+      ...prev,
+      name: cleanText(prev.name, 100).trim(),
+      phone: cleanText(prev.phone, 30).trim(),
+      email: cleanText(prev.email, 254).trim(),
+      notes: cleanText(prev.notes, 1000).trim(),
+    }));
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
@@ -73,7 +96,7 @@ export default function InquiryModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={closeModal}
             className="fixed inset-0 bg-black/80 backdrop-blur-md"
           />
 
@@ -84,14 +107,16 @@ export default function InquiryModal({
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
             className="relative w-full max-w-xl bg-brand-card border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden my-auto"
-            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="inquiry-title"
           >
             {/* Ambient gold glow at top */}
             <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-32 bg-brand-gold/15 blur-3xl pointer-events-none rounded-full" />
 
             {/* Close button */}
             <button
-              onClick={onClose}
+              onClick={closeModal}
               className="absolute top-6 right-6 text-brand-muted hover:text-white p-2 rounded-full border border-white/10 hover:border-brand-gold/40 transition-colors"
               aria-label="Close dialog"
             >
@@ -117,7 +142,7 @@ export default function InquiryModal({
                 </p>
                 <div className="pt-4">
                   <button
-                    onClick={onClose}
+                    onClick={closeModal}
                     className="bg-brand-gold text-black font-medium px-8 py-3 rounded-full hover:bg-brand-gold-hover transition-all text-sm"
                   >
                     Close Window
@@ -131,7 +156,7 @@ export default function InquiryModal({
                   <span className="text-brand-gold text-[11px] font-semibold tracking-[0.25em] uppercase border border-brand-gold/30 px-3 py-1 rounded-full inline-block">
                     PRIVATE CONSULTATION
                   </span>
-                  <h3 className="font-serif text-2xl sm:text-3xl font-light text-white">
+                  <h3 id="inquiry-title" className="font-serif text-2xl sm:text-3xl font-light text-white">
                     Acquire or Inquire
                   </h3>
                   <p className="text-brand-muted text-xs sm:text-sm font-light">
@@ -149,7 +174,8 @@ export default function InquiryModal({
                         type="text"
                         required
                         value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        maxLength={100}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, name: cleanText(e.target.value, 100) }))}
                         placeholder="e.g. Tariq Bajwa"
                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-brand-muted/40 focus:outline-none focus:border-brand-gold transition-colors"
                       />
@@ -162,7 +188,8 @@ export default function InquiryModal({
                         type="tel"
                         required
                         value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        maxLength={30}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, phone: cleanText(e.target.value, 30) }))}
                         placeholder="+92 300 1234567"
                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-brand-muted/40 focus:outline-none focus:border-brand-gold transition-colors"
                       />
@@ -178,7 +205,8 @@ export default function InquiryModal({
                         type="email"
                         required
                         value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        maxLength={254}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, email: cleanText(e.target.value, 254) }))}
                         placeholder="client@domain.com"
                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-brand-muted/40 focus:outline-none focus:border-brand-gold transition-colors"
                       />
@@ -210,7 +238,8 @@ export default function InquiryModal({
                     <textarea
                       rows={3}
                       value={formData.notes}
-                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                      maxLength={1000}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, notes: cleanText(e.target.value, 1000) }))}
                       placeholder="Share your preferred phase, plot orientation, or investment timeline..."
                       className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-brand-muted/40 focus:outline-none focus:border-brand-gold transition-colors resize-none"
                     />

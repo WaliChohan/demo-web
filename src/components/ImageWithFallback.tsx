@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 interface ImageWithFallbackProps {
   src: string;
@@ -31,9 +31,11 @@ export default function ImageWithFallback({
       )}
 
       {/* Actual image */}
-      <img
+      <Image
         src={hasError ? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop' : src}
         alt={alt}
+        fill
+        sizes="100vw"
         draggable={draggable}
         style={style}
         onLoad={() => setIsLoaded(true)}

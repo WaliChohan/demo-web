@@ -1,20 +1,61 @@
 'use client';
 
-import { motion, type Variants } from 'framer-motion';
-import { ArrowUpRight, Sparkles } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowUpRight, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import SplitTextHeading from './SplitTextHeading';
 
+const heroVisuals = [
+  { src: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=90&w=1800&auto=format&fit=crop', alt: 'Contemporary residence framed by a lush landscape', label: 'A considered arrival' },
+  { src: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=90&w=1800&auto=format&fit=crop', alt: 'Modern residence with warm natural materials', label: 'Material in balance' },
+  { src: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=90&w=1800&auto=format&fit=crop', alt: 'Minimalist architectural home with expansive glazing', label: 'Light, shaped by space' },
+  { src: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?q=90&w=1800&auto=format&fit=crop', alt: 'Sculptural luxury villa set among mature trees', label: 'A quieter kind of luxury' },
+];
+
 export default function Hero() {
+  const [activeVisual, setActiveVisual] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setActiveVisual((current) => (current + 1) % heroVisuals.length);
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const showPrevious = () => setActiveVisual((current) => (current - 1 + heroVisuals.length) % heroVisuals.length);
+  const showNext = () => setActiveVisual((current) => (current + 1) % heroVisuals.length);
+
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 40, scale: 0.99 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.9, ease: [0.25, 1, 0.5, 1] }}
-      className="min-h-screen pt-28 pb-16 px-6 md:px-12 lg:px-20 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center max-w-7xl mx-auto"
-      style={{ willChange: 'transform, opacity' }}
-    >
+    <section className="relative isolate min-h-[100svh] w-full overflow-hidden bg-brand-dark">
+      {/* Full-screen slideshow background */}
+      <div className="absolute inset-0 z-0" data-cursor-label="DRAG">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeVisual}
+            initial={{ opacity: 0, scale: 1.06, x: 12 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 0.985, x: -12 }}
+            transition={{ duration: 0.8, ease: [0.25, 1, 0.5, 1] }}
+            className="absolute inset-0"
+          >
+            <Image
+              src={heroVisuals[activeVisual].src}
+              alt={heroVisuals[activeVisual].alt}
+              fill
+              priority={activeVisual === 0}
+              sizes="100vw"
+              className="object-cover object-center"
+            />
+          </motion.div>
+        </AnimatePresence>
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,17,40,0.98)_0%,rgba(10,17,40,0.9)_38%,rgba(10,17,40,0.58)_65%,rgba(10,17,40,0.22)_100%)]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/75 via-transparent to-brand-dark/15" />
+      </div>
+
+      <div className="relative z-10 mx-auto grid min-h-[100svh] w-full max-w-7xl grid-cols-1 items-center gap-12 px-6 pb-40 pt-28 md:px-12 lg:grid-cols-12 lg:px-20 lg:pb-36">
       {/* Left Content Column */}
-      <div className="lg:col-span-7 space-y-3">
+      <div className="space-y-3 lg:col-span-8">
         {/* Tagline Badge */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -35,9 +76,10 @@ export default function Hero() {
             as="h1"
             text="Designing Living Spaces That Redefine Modern Luxury."
             goldWords={['Modern', 'Luxury.']}
-            underline
+            underline={false}
             inView={false}
-            className="text-4xl sm:text-6xl lg:text-7xl leading-[1.1]"
+            hoverEffect={false}
+            className="text-3xl min-[375px]:text-4xl sm:text-6xl lg:text-7xl leading-[1.1]"
           />
         </div>
 
@@ -46,7 +88,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.5, ease: [0.25, 1, 0.5, 1] }}
-          className="text-brand-muted text-base md:text-lg max-w-xl font-sans font-light mb-8 leading-relaxed"
+          className="mb-8 max-w-xl font-sans text-base font-light leading-relaxed text-white/75 md:text-lg"
         >
           Curated architectural properties, high-end interior spaces, and bespoke real estate developments tailored for refined living.
         </motion.p>
@@ -73,37 +115,25 @@ export default function Hero() {
             <span>View Plot Showcase</span>
             <ArrowUpRight className="w-5 h-5 transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
           </a>
+          <a
+            href="#inquire"
+            data-cursor-hover
+            className="group relative text-white hover:text-brand-gold transition-all duration-300 font-medium flex items-center gap-2 px-6 py-4 hover:-translate-y-0.5"
+          >
+            Schedule Consultation
+            <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
+          </a>
         </motion.div>
       </div>
+      </div>
 
-      {/* Right Visual Column */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 1, delay: 0.3, ease: [0.25, 1, 0.5, 1] }}
-        className="lg:col-span-5 relative"
-      >
-        <div
-          className="aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 relative shadow-2xl group transition-all duration-500 hover:border-brand-gold/40"
-          data-cursor-hover
-        >
-          <motion.img
-            initial={{ scale: 1.15, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1.2, delay: 0.4, ease: [0.25, 1, 0.5, 1] }}
-            src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=1200&auto=format&fit=crop"
-            alt="Luxury Architectural Residence"
-            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-          />
-          {/* Subtle gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent pointer-events-none" />
-
-          {/* Floating Stats Badge */}
+      {/* Slideshow details and controls */}
+      <div className="absolute bottom-10 left-6 right-6 z-20 flex flex-col gap-5 md:left-12 md:right-12 sm:flex-row sm:items-end sm:justify-between lg:left-auto lg:right-[max(5rem,calc((100vw-80rem)/2))] lg:w-[42rem]">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.8, ease: [0.25, 1, 0.5, 1] }}
-            className="absolute bottom-6 left-6 right-6 sm:right-auto bg-brand-dark/85 backdrop-blur-md border border-white/15 p-4 rounded-xl shadow-2xl flex items-center gap-4 transition-all duration-300 hover:border-brand-gold/40 hover:scale-[1.02]"
+            className="flex items-center gap-4 rounded-xl border border-white/15 bg-brand-dark/85 p-4 shadow-2xl backdrop-blur-md transition-all duration-300 hover:border-brand-gold/40 sm:max-w-sm"
             data-cursor-hover
           >
             <div className="bg-brand-gold/20 p-2.5 rounded-lg text-brand-gold">
@@ -112,12 +142,58 @@ export default function Hero() {
             <div>
               <p className="text-xl font-serif font-bold text-white leading-tight">50+</p>
               <p className="text-xs text-brand-muted font-sans font-light uppercase tracking-wider">
-                Bespoke Estates Developed
+                {heroVisuals[activeVisual].label}
               </p>
             </div>
           </motion.div>
-        </div>
-      </motion.div>
-    </motion.section>
+
+          <div className="flex items-center gap-3 self-end" data-cursor-hover>
+            <span className="font-sans text-[11px] tracking-[0.2em] text-white/75 tabular-nums">
+              {String(activeVisual + 1).padStart(2, '0')} <span className="text-white/35">/</span> {String(heroVisuals.length).padStart(2, '0')}
+            </span>
+            <button
+              type="button"
+              onClick={showPrevious}
+              aria-label="Previous architectural visual"
+              data-cursor-label="PREV"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/30 bg-brand-dark/55 text-white backdrop-blur-sm transition-colors hover:border-brand-gold hover:text-brand-gold"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={showNext}
+              aria-label="Next architectural visual"
+              data-cursor-label="NEXT"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/30 bg-brand-dark/55 text-white backdrop-blur-sm transition-colors hover:border-brand-gold hover:text-brand-gold"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+
+      </div>
+      <div className="absolute bottom-0 left-0 right-0 z-20 flex h-[2px] gap-1 px-6 md:px-12 lg:px-20" role="group" aria-label="Choose architectural visual">
+            {heroVisuals.map((visual, index) => (
+              <button
+                key={visual.src}
+                type="button"
+                aria-label={`Show visual ${index + 1}`}
+                aria-current={index === activeVisual ? 'true' : undefined}
+                onClick={() => setActiveVisual(index)}
+                className="relative h-full flex-1 bg-white/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-gold"
+              >
+                {index === activeVisual && (
+                  <motion.span
+                    key={`progress-${activeVisual}`}
+                    className="absolute inset-y-0 left-0 w-full origin-left bg-brand-gold"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ duration: 5, ease: 'linear' }}
+                  />
+                )}
+              </button>
+            ))}
+      </div>
+    </section>
   );
 }

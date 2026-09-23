@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { motion, useMotionValue, type PanInfo } from 'framer-motion';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { AnimatePresence, animate, motion, useMotionValue, type PanInfo } from 'framer-motion';
+import Image from 'next/image';
 import { MapPin, Bed, Bath, Square, ArrowUpRight, ChevronLeft, ChevronRight, MoveHorizontal } from 'lucide-react';
 import SplitTextHeading from './SplitTextHeading';
 
@@ -67,6 +68,7 @@ export default function PropertyGrid() {
   const containerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [maxDrag, setMaxDrag] = useState(0);
+  const [maxIndex, setMaxIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -78,22 +80,35 @@ export default function PropertyGrid() {
         const containerWidth = containerRef.current.offsetWidth;
         const trackWidth = trackRef.current.scrollWidth;
         const diff = trackWidth - containerWidth;
-        setMaxDrag(diff > 0 ? diff + 32 : 0);
+        const cardWidth = trackRef.current.firstElementChild?.getBoundingClientRect().width ?? 380;
+        const nextMaxDrag = Math.max(0, diff);
+        const nextMaxIndex = Math.min(properties.length - 1, Math.ceil(nextMaxDrag / (cardWidth + 32)));
+        setMaxDrag(nextMaxDrag);
+        setMaxIndex(nextMaxIndex);
+        setCurrentIndex((current) => Math.min(current, nextMaxIndex));
+        x.set(Math.max(-nextMaxDrag, Math.min(0, x.get())));
       }
     };
 
     updateConstraints();
     window.addEventListener('resize', updateConstraints);
     return () => window.removeEventListener('resize', updateConstraints);
-  }, []);
+  }, [x]);
 
-  const slideTo = (index: number) => {
+  const slideTo = useCallback((index: number) => {
     const nextIdx = Math.max(0, Math.min(index, properties.length - 1));
     setCurrentIndex(nextIdx);
-    const cardWidth = 380 + 32; // card width + gap approx
+    const cardWidth = (trackRef.current?.firstElementChild?.getBoundingClientRect().width ?? 380) + 32;
     const targetX = -nextIdx * cardWidth;
-    x.set(Math.max(-maxDrag, targetX));
-  };
+    animate(x, Math.max(-maxDrag, targetX), { duration: 0.65, ease: [0.25, 1, 0.5, 1] });
+  }, [maxDrag, x]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      slideTo(currentIndex >= maxIndex ? 0 : currentIndex + 1);
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, [currentIndex, maxIndex, slideTo]);
 
   const handlePrev = () => slideTo(currentIndex - 1);
   const handleNext = () => slideTo(currentIndex + 1);
@@ -114,9 +129,26 @@ export default function PropertyGrid() {
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, amount: 0.12 }}
       transition={{ duration: 0.8, ease: [0.25, 1, 0.5, 1] }}
-      className="px-6 md:px-12 lg:px-20 py-24 max-w-7xl mx-auto overflow-hidden"
+      className="relative isolate min-h-[100svh] w-full overflow-hidden bg-brand-dark px-6 py-24 md:px-12 lg:px-20"
       style={{ willChange: 'transform, opacity' }}
     >
+      <div className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentIndex}
+            initial={{ opacity: 0, scale: 1.04 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.02 }}
+            transition={{ duration: 0.8, ease: [0.25, 1, 0.5, 1] }}
+            className="absolute inset-0"
+          >
+            <Image src={properties[currentIndex].image} alt="" fill sizes="100vw" className="object-cover object-center" />
+          </motion.div>
+        </AnimatePresence>
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,17,40,0.97)_0%,rgba(10,17,40,0.88)_42%,rgba(10,17,40,0.7)_72%,rgba(10,17,40,0.58)_100%)]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/90 via-brand-dark/25 to-brand-dark/65" />
+      </div>
+      <div className="relative z-10 mx-auto max-w-7xl">
       {/* Section Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
         <div className="max-w-2xl space-y-3">
@@ -177,7 +209,7 @@ export default function PropertyGrid() {
             </motion.button>
             <motion.button
               onClick={handleNext}
-              disabled={currentIndex >= properties.length - 3}
+              disabled={currentIndex >= maxIndex}
               animate={{ x: [2, -2, 2] }}
               transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
               data-cursor-hover
@@ -191,7 +223,7 @@ export default function PropertyGrid() {
       </div>
 
       {/* Draggable Property Cards Container */}
-      <div ref={containerRef} className="cursor-grab active:cursor-grabbing select-none">
+      <div ref={containerRef} className="cursor-grab active:cursor-grabbing select-none overflow-hidden touch-pan-y">
         <motion.div
           ref={trackRef}
           drag="x"
@@ -205,14 +237,16 @@ export default function PropertyGrid() {
           {properties.map((property) => (
             <motion.div
               key={property.id}
-              className="w-[320px] sm:w-[380px] flex-shrink-0 bg-brand-card/80 border border-white/10 rounded-2xl overflow-hidden group hover:border-brand-gold/60 transition-all duration-500 flex flex-col shadow-xl hover:shadow-brand-gold/10"
-              data-cursor-hover
+              className="w-[calc(100vw-3rem)] flex-shrink-0 bg-brand-card/90 border border-white/15 rounded-2xl overflow-hidden group hover:border-brand-gold/60 transition-all duration-500 flex flex-col shadow-2xl hover:shadow-brand-gold/10 sm:w-[380px]"
+              data-cursor-label="VIEW"
             >
               {/* Property Image Container with hover zoom */}
               <div className="relative aspect-[4/3] overflow-hidden">
-                <img
+                <Image
                   src={property.image}
                   alt={property.title}
+                  fill
+                  sizes="(max-width: 640px) 320px, 380px"
                   draggable={false}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                 />
@@ -263,7 +297,7 @@ export default function PropertyGrid() {
                 {/* View Estate CTA */}
                 <div className="pt-2">
                   <a
-                    href={`#property-${property.id}`}
+                    href="#inquire"
                     data-cursor-hover
                     className="w-full border border-brand-gold/30 group-hover:border-brand-gold text-white group-hover:bg-brand-gold group-hover:text-black transition-all duration-300 px-4 py-2.5 rounded-xl text-xs uppercase tracking-widest font-medium flex items-center justify-between shadow-sm"
                   >
@@ -275,6 +309,19 @@ export default function PropertyGrid() {
             </motion.div>
           ))}
         </motion.div>
+      </div>
+      <div className="mt-9 flex items-center justify-center gap-2.5" role="group" aria-label="Choose featured estate position">
+        {Array.from({ length: maxIndex + 1 }, (_, index) => (
+          <button
+            key={index}
+            type="button"
+            onClick={() => slideTo(index)}
+            aria-label={`Show estate group ${index + 1}`}
+            aria-current={currentIndex === index ? 'true' : undefined}
+            className={`h-1.5 rounded-full transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-gold ${currentIndex === index ? 'w-8 bg-brand-gold' : 'w-3 bg-white/40 hover:bg-white/80'}`}
+          />
+        ))}
+      </div>
       </div>
     </motion.section>
   );

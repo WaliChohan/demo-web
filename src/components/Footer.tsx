@@ -50,7 +50,7 @@ export default function Footer() {
             />
           </div>
           <a
-            href="#contact"
+            href="#inquire"
             data-cursor-hover
             className="flex items-center gap-2.5 bg-brand-gold hover:bg-brand-gold-hover text-black font-medium px-8 py-4 rounded-full transition-all duration-300 shrink-0 group shadow-lg shadow-brand-gold/15 hover:scale-105"
           >
@@ -135,7 +135,8 @@ export default function Footer() {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                maxLength={254}
+                onChange={(e) => setEmail(e.target.value.replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 254))}
                 placeholder="your@email.com"
                 className="flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder:text-brand-muted/50 focus:outline-none font-sans min-w-0"
               />

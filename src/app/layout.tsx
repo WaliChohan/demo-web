@@ -3,6 +3,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import SmoothScroll from "@/components/SmoothScroll";
 import CustomCursor from "@/components/CustomCursor";
+import InquiryModal from "@/components/InquiryModal";
 
 export const metadata: Metadata = {
   title: "Bajwa Estate | Premium Real Estate",
@@ -18,6 +19,7 @@ export default function RootLayout({
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
         <CustomCursor />
+        <InquiryModal />
         <SmoothScroll>
           <Navbar />
           {children}
@@ -26,4 +28,3 @@ export default function RootLayout({
     </html>
   );
 }
-
