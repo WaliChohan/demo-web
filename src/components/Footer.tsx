@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { ArrowUpRight, Globe, Mail, Send } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
+import Image from 'next/image';
 import SplitTextHeading from './SplitTextHeading';
 
 const footerLinks = {
@@ -71,9 +72,16 @@ export default function Footer() {
             <a
               href="#"
               data-cursor-text
-              className="font-serif text-brand-gold font-bold text-lg tracking-widest uppercase inline-block hover:tracking-[0.2em] transition-all duration-300"
+              aria-label="Bajwa Estate home"
+              className="inline-flex transition-opacity duration-300 hover:opacity-80"
             >
-              Bajwa Estate
+              <Image
+                src="/brand/bajwa-estate-logo.png"
+                alt="Bajwa Estate"
+                width={750}
+                height={660}
+                className="h-auto w-36 object-contain sm:w-40"
+              />
             </a>
             <p className="text-brand-muted text-sm font-light leading-relaxed max-w-xs">
               Architectural precision meets visionary real estate. Crafting landmark residences for discerning clients worldwide.
@@ -89,7 +97,7 @@ export default function Footer() {
               </p>
               <p>
                 <span className="text-white/60 text-xs uppercase tracking-widest block mb-0.5">Office</span>
-                DHA Phase 6, Lahore &amp; Global Offices
+                Plot 7 Block 17 Sector B1 Township College Road Akbar Chowk, Township Block A Phase 1 Johar Town, Lahore, 54000, Pakistan
               </p>
             </div>
           </div>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
+import Image from 'next/image';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -22,8 +23,17 @@ export default function Navbar() {
           href="#"
           data-cursor-text
           data-cursor-hover
-          className="group relative font-serif text-brand-gold font-bold text-xl tracking-widest uppercase transition-all duration-300 hover:tracking-[0.22em] flex items-center gap-1.5"
+          aria-label="Bajwa Estate home"
+          className="group relative font-serif text-brand-gold font-bold text-xl tracking-widest uppercase transition-all duration-300 hover:tracking-[0.22em] flex items-center gap-2"
         >
+          <Image
+            src="/brand/bajwa-estate-symbol.png"
+            alt=""
+            width={750}
+            height={570}
+            priority
+            className="h-10 w-[3.25rem] shrink-0 object-contain"
+          />
           <span>Bajwa</span>
           <span className="text-white/90 group-hover:text-brand-gold transition-colors">Estate</span>
           <span className="absolute -bottom-1 left-0 w-full h-[1.5px] bg-brand-gold scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
